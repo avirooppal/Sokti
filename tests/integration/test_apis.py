@@ -47,3 +47,27 @@ def test_rag_query_generation():
     assert "answer" in data
     assert len(data["sources"]) > 0
     assert "content_id" in data["sources"][0]
+
+
+def test_frontend_serving():
+    res = core_client.get("/")
+    assert res.status_code == 200
+    assert "SOKTI" in res.text
+
+
+def test_catalog_endpoint():
+    res = core_client.get("/api/v1/catalog?limit=5")
+    assert res.status_code == 200
+    data = res.json()
+    assert "items" in data
+    assert len(data["items"]) > 0
+
+
+def test_users_endpoint_pii_masked():
+    res = core_client.get("/api/v1/users?limit=3")
+    assert res.status_code == 200
+    users = res.json()["users"]
+    assert len(users) > 0
+    # Verify email has masking (contains ***)
+    assert "***" in users[0]["email"]
+

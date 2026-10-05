@@ -54,6 +54,10 @@ test:
 test-e2e:
 	pytest tests/e2e/ -v
 
+# Run the frontend web application and unified API gateway on http://localhost:8001
+frontend:
+	uvicorn apps.api.main:app --host 0.0.0.0 --port 8001 --reload
+
 # Teardown and delete persistent volumes
 clean:
 	docker compose down -v

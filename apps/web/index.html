@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sokti — Next-Gen OTT Streaming Platform</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fff1f2',
+              500: '#e11d48',
+              600: '#be123c',
+              900: '#881337',
+            },
+            dark: {
+              950: '#090a0f',
+              900: '#0f111a',
+              800: '#171a26',
+              700: '#212638',
+              600: '#2e354d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #090a0f;
+      color: #f3f4f6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    .cinema-gradient {
+      background: linear-gradient(180deg, rgba(9,10,15,0) 0%, rgba(9,10,15,0.85) 60%, #090a0f 100%);
+    }
+    .poster-card {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .poster-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 30px -10px rgba(225, 29, 72, 0.3);
+    }
+    .glow-border {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow-border:hover {
+      border-color: rgba(225, 29, 72, 0.5);
+    }
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-brand-500 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- Top Navigation Bar -->
+  <!-- ========================================================================= -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-md border-b border-white/5 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-8">
+        <a href="#" class="flex items-center gap-2 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:scale-105 transition">
+            <i data-lucide="play" class="w-5 h-5 text-white fill-white ml-0.5"></i>
+          </div>
+          <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+            SOKTI<span class="text-brand-500">.</span>
+          </span>
+        </a>
+
+        <!-- Main Nav Links -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-400">
+          <a href="#" class="text-white hover:text-brand-400 transition">Browse</a>
+          <a href="#trending" class="hover:text-white transition">Trending</a>
+          <a href="#personalized" class="hover:text-white transition">Personalized</a>
+          <a href="#scifi" class="hover:text-white transition">Sci-Fi</a>
+          <a href="#crime" class="hover:text-white transition">Crime</a>
+        </nav>
+      </div>
+
+      <!-- Center AI Search Trigger -->
+      <div class="flex-1 max-w-md hidden sm:block">
+        <div class="relative">
+          <i data-lucide="sparkles" class="w-4 h-4 text-brand-400 absolute left-3.5 top-3 pointer-events-none"></i>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search with AI (e.g. 'space wormholes', 'cyberpunk drone')..."
+            class="w-full bg-dark-900 border border-white/10 rounded-full pl-10 pr-24 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-brand-500 transition shadow-inner"
+            onkeydown="if(event.key === 'Enter') executeSemanticSearch()"
+          />
+          <button
+            onclick="executeSemanticSearch()"
+            class="absolute right-1.5 top-1.5 px-3 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded-full text-xs font-semibold tracking-wide transition shadow"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Actions: RAG Assistant, Telemetry Badge, Profile Selector -->
+      <div class="flex items-center gap-3">
+        <!-- RAG Chat Button -->
+        <button
+          onclick="openRAGModal()"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 transition"
+          title="Open AI OTT Assistant"
+        >
+          <i data-lucide="bot" class="w-4 h-4 text-brand-400"></i>
+          <span class="hidden lg:inline">Ask AI (RAG)</span>
+        </button>
+
+        <!-- Live Platform Telemetry Button -->
+        <button
+          onclick="openStatsModal()"
+          class="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-semibold text-emerald-400 transition"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="hidden lg:inline">Pipeline Live</span>
+        </button>
+
+        <!-- User Profile Switcher -->
+        <div class="relative">
+          <select
+            id="userSelector"
+            onchange="onUserChanged(this.value)"
+            class="bg-dark-900 border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-zinc-200 focus:outline-none focus:border-brand-500 cursor-pointer max-w-[170px] truncate"
+          >
+            <option value="">Loading profiles...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- Live Telemetry HUD Bar (Pulsating Toast when Events are Emitted to Kafka) -->
+  <!-- ========================================================================= -->
+  <div id="telemetryToast" class="fixed bottom-6 right-6 z-50 max-w-md bg-dark-900/95 border border-brand-500/40 rounded-2xl p-4 shadow-2xl backdrop-blur-md transform translate-y-32 opacity-0 transition-all duration-300 flex items-start gap-3">
+    <div class="p-2 rounded-xl bg-brand-500/20 text-brand-400">
+      <i data-lucide="radio" class="w-5 h-5 animate-pulse"></i>
+    </div>
+    <div class="flex-1 text-xs">
+      <div class="flex items-center justify-between font-bold text-white mb-1">
+        <span>Kafka Ingress Acknowledged</span>
+        <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">HTTP 202 Accepted</span>
+      </div>
+      <p id="telemetryDetails" class="text-zinc-400 font-mono text-[11px] leading-relaxed">
+        Topic: ott.playback.events.v1
+      </p>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Hero Section -->
+  <!-- ========================================================================= -->
+  <section id="heroSection" class="relative pt-24 pb-16 lg:pt-36 lg:pb-32 overflow-hidden">
+    <!-- Hero Background Backdrop -->
+    <div class="absolute inset-0 z-0">
+      <div id="heroBackdrop" class="w-full h-full bg-gradient-to-r from-dark-950 via-dark-900/80 to-dark-950 bg-cover bg-center filter brightness-50 scale-105 transition-all duration-700"></div>
+      <div class="absolute inset-0 cinema-gradient"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="max-w-2xl space-y-4">
+        <!-- Badges -->
+        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+          <span class="px-2.5 py-1 rounded-md bg-brand-600 text-white shadow-sm tracking-wider uppercase font-bold">SOKTI ORIGINAL</span>
+          <span id="heroRating" class="px-2 py-0.5 rounded bg-white/10 text-zinc-300">U/A 16+</span>
+          <span id="heroYear" class="text-zinc-400">2024</span>
+          <span class="px-1.5 py-0.5 rounded border border-white/20 text-[10px] text-zinc-300">4K ULTRA HD</span>
+          <span class="px-1.5 py-0.5 rounded border border-white/20 text-[10px] text-zinc-300">5.1 DOLBY AUDIO</span>
+        </div>
+
+        <!-- Title -->
+        <h1 id="heroTitle" class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+          Cosmic Horizon
+        </h1>
+
+        <!-- Synopsis -->
+        <p id="heroSynopsis" class="text-sm sm:text-base text-zinc-300 leading-relaxed line-clamp-3">
+          An intrepid crew journeys across wormholes to rescue humanity from ecological collapse. Directed with stunning visual fidelity and gripping soundscapes.
+        </p>
+
+        <!-- Cast & Director -->
+        <div id="heroCredits" class="text-xs text-zinc-400 space-y-0.5">
+          <p><span class="text-zinc-200 font-semibold">Director:</span> Guillermo del Toro</p>
+          <p><span class="text-zinc-200 font-semibold">Starring:</span> Cillian Murphy, Florence Pugh, Leonardo DiCaprio</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-4 pt-4">
+          <button
+            id="heroPlayBtn"
+            onclick="playCurrentHero()"
+            class="flex items-center gap-2.5 px-6 py-3 rounded-xl bg-white text-dark-950 hover:bg-zinc-200 font-bold text-sm transition shadow-lg shadow-white/10 group"
+          >
+            <i data-lucide="play" class="w-4 h-4 fill-dark-950"></i>
+            <span>Play Now</span>
+          </button>
+
+          <button
+            onclick="openRAGWithQuery('Tell me more about ' + currentHero.title)"
+            class="flex items-center gap-2 px-5 py-3 rounded-xl bg-dark-800/80 hover:bg-dark-700 text-white font-medium text-sm border border-white/10 transition backdrop-blur-sm"
+          >
+            <i data-lucide="sparkles" class="w-4 h-4 text-brand-400"></i>
+            <span>Ask AI About This</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- Quick AI Query Suggestions Bar -->
+  <!-- ========================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+    <div class="flex items-center gap-2 overflow-x-auto scrollbar-none py-2 text-xs">
+      <span class="text-zinc-500 font-semibold whitespace-nowrap flex items-center gap-1">
+        <i data-lucide="compass" class="w-3.5 h-3.5"></i> Try AI Searches:
+      </span>
+      <button onclick="quickSearch('cyberpunk bounty hunter in Mumbai')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 transition">
+        🤖 Cyberpunk Bounty Hunter
+      </button>
+      <button onclick="quickSearch('space exploration wormholes saving humanity')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 transition">
+        🚀 Space Wormholes
+      </button>
+      <button onclick="quickSearch('corrupt real estate syndicate crime Delhi')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 transition">
+        🕵️ Delhi Real Estate Syndicate
+      </button>
+      <button onclick="quickSearch('software engineers hedge fund tech heist')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 transition">
+        💻 Bengaluru Tech Heist
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- Search Results Section (Revealed when search is performed) -->
+  <!-- ========================================================================= -->
+  <section id="searchResultsSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-xl bg-brand-500/20 text-brand-400">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white">Semantic Vector Search Results</h2>
+          <p id="searchSubheading" class="text-xs text-zinc-400 font-mono">Found matching titles in pgvector</p>
+        </div>
+      </div>
+      <button onclick="clearSearch()" class="text-xs text-zinc-400 hover:text-white underline">Clear Results</button>
+    </div>
+    <div id="searchResultsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <!-- Dynamic search hit cards -->
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- Content Carousels -->
+  <!-- ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    
+    <!-- Row 1: Personalized For You (ClickHouse + pgvector) -->
+    <section id="personalized">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-white">Recommended For You</h2>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-brand-500/20 text-brand-300 font-medium">ClickHouse Features + Vectors</span>
+        </div>
+      </div>
+      <div id="recsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- Row 2: Trending Blockbusters -->
+    <section id="trending">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg sm:text-xl font-bold text-white">🔥 Trending Movies & Series</h2>
+        <span class="text-xs text-zinc-500">Live Catalog</span>
+      </div>
+      <div id="trendingGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- Row 3: Sci-Fi & Speculative -->
+    <section id="scifi">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg sm:text-xl font-bold text-white">🚀 Sci-Fi & Cyberpunk Worlds</h2>
+      </div>
+      <div id="scifiGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- Row 4: Crime & Mystery -->
+    <section id="crime">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg sm:text-xl font-bold text-white">🕵️ Crime Syndicates & Gritty Thrillers</h2>
+      </div>
+      <div id="crimeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- Simulated In-Browser Player Modal -->
+  <!-- ========================================================================= -->
+  <div id="playerModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+    <div class="bg-dark-900 border border-white/10 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl flex flex-col">
+      <!-- Player Header -->
+      <div class="px-6 py-4 bg-dark-950 flex items-center justify-between border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+          <div>
+            <h3 id="playerMovieTitle" class="text-sm font-bold text-white">Playing Title</h3>
+            <p id="playerSessionId" class="text-[10px] text-zinc-400 font-mono">Session ID: --</p>
+          </div>
+        </div>
+        <button onclick="closePlayer()" class="text-zinc-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Cinema Screen Canvas -->
+      <div class="relative w-full h-80 sm:h-96 bg-dark-950 flex items-center justify-center overflow-hidden">
+        <canvas id="cinemaCanvas" class="w-full h-full"></canvas>
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black/40">
+          <div id="playerStateIcon" class="w-16 h-16 rounded-full bg-brand-600/80 text-white flex items-center justify-center shadow-2xl mb-4">
+            <i data-lucide="play" class="w-8 h-8 fill-white ml-1"></i>
+          </div>
+          <p id="canvasTitleOverlay" class="text-xl font-bold text-white drop-shadow">Title</p>
+          <p class="text-xs text-zinc-400 mt-1 font-mono">Real-time Telemetry Active → Kafka Topic ott.playback.events.v1</p>
+        </div>
+      </div>
+
+      <!-- Controls & Scrub Bar -->
+      <div class="p-6 bg-dark-900 space-y-4">
+        <!-- Progress Bar -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-xs text-zinc-400 font-mono">
+            <span id="playerCurrentTime">00:00</span>
+            <span id="playerTotalTime">02:15:00</span>
+          </div>
+          <input
+            id="playerScrubber"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+            oninput="onScrubInput(this.value)"
+            class="w-full h-1.5 bg-dark-700 rounded-lg appearance-none cursor-pointer accent-brand-500"
+          />
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <button onclick="togglePlayPause()" id="playPauseBtn" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg transition">
+              <i data-lucide="pause" class="w-4 h-4 fill-white"></i>
+              <span id="playPauseLabel">Pause</span>
+            </button>
+            <button onclick="seekOffset(-10)" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold flex items-center gap-1 transition">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> -10s
+            </button>
+            <button onclick="seekOffset(10)" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold flex items-center gap-1 transition">
+              <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> +10s
+            </button>
+            <button onclick="completePlayback()" class="px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-1 transition">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Complete Video
+            </button>
+          </div>
+
+          <div class="text-right text-[11px] text-zinc-500 font-mono">
+            <p>Active Profile: <span id="playerActiveUser" class="text-zinc-300">--</span></p>
+            <p>Device: <span class="text-zinc-300">web_desktop (Chrome 122)</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- AI RAG Assistant Modal -->
+  <!-- ========================================================================= -->
+  <div id="ragModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-dark-900 border border-white/10 rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl flex flex-col h-[520px]">
+      <!-- Header -->
+      <div class="px-6 py-4 bg-dark-950 flex items-center justify-between border-b border-white/5">
+        <div class="flex items-center gap-2">
+          <div class="p-1.5 rounded-lg bg-brand-500/20 text-brand-400">
+            <i data-lucide="bot" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Sokti AI Assistant (RAG)</h3>
+            <p class="text-[10px] text-zinc-400">Grounded recommendations from MongoDB + pgvector</p>
+          </div>
+        </div>
+        <button onclick="closeRAGModal()" class="text-zinc-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Messages Area -->
+      <div id="ragChatArea" class="flex-1 p-6 overflow-y-auto space-y-4 text-xs leading-relaxed">
+        <div class="flex items-start gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+          <i data-lucide="sparkles" class="w-4 h-4 text-brand-400 mt-0.5"></i>
+          <div>
+            <p class="font-bold text-white mb-1">Hello! I am Sokti AI.</p>
+            <p class="text-zinc-300">Ask me for movie recommendations or details about any plot, genre, or director in our catalog. What are you in the mood to watch?</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-4 bg-dark-950 border-t border-white/5 flex gap-2">
+        <input
+          id="ragInput"
+          type="text"
+          placeholder="Ask for recommendations (e.g. 'What sci-fi movies do you have?')..."
+          class="flex-1 bg-dark-900 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-500"
+          onkeydown="if(event.key === 'Enter') sendRAGQuery()"
+        />
+        <button
+          onclick="sendRAGQuery()"
+          class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Platform Telemetry & Architecture Stats Modal -->
+  <!-- ========================================================================= -->
+  <div id="statsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-dark-900 border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6">
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h3 class="text-base font-bold text-white">Live Platform Telemetry</h3>
+        </div>
+        <button onclick="closeStatsModal()" class="text-zinc-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3 bg-dark-800 rounded-xl border border-white/5 space-y-1">
+          <p class="text-zinc-400">ClickHouse Raw Events</p>
+          <p id="statRawEvents" class="text-lg font-bold text-white font-mono">--</p>
+        </div>
+        <div class="p-3 bg-dark-800 rounded-xl border border-white/5 space-y-1">
+          <p class="text-zinc-400">Watch Sessions Mart</p>
+          <p id="statSessions" class="text-lg font-bold text-emerald-400 font-mono">--</p>
+        </div>
+        <div class="p-3 bg-dark-800 rounded-xl border border-white/5 space-y-1">
+          <p class="text-zinc-400">MongoDB Catalog Titles</p>
+          <p id="statTitles" class="text-lg font-bold text-white font-mono">--</p>
+        </div>
+        <div class="p-3 bg-dark-800 rounded-xl border border-white/5 space-y-1">
+          <p class="text-zinc-400">pgvector 384d Embeddings</p>
+          <p id="statVectors" class="text-lg font-bold text-brand-400 font-mono">--</p>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-zinc-400 bg-white/5 p-3.5 rounded-xl border border-white/5 font-mono space-y-1">
+        <p>• Kafka Ingress: <span class="text-emerald-400">ONLINE</span> (Topic: ott.playback.events.v1)</p>
+        <p>• Debezium CDC: <span class="text-emerald-400">ACTIVE</span> (WAL Replication)</p>
+        <p>• dbt Marts: <span class="text-emerald-400">13 Models / 17 Tests PASSING</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JavaScript Application Logic -->
+  <!-- ========================================================================= -->
+  <script>
+    const API_BASE = window.location.origin;
+
+    let catalog = [];
+    let users = [];
+    let currentUser = null;
+    let currentHero = null;
+    let playerState = {
+      isPlaying: false,
+      contentId: null,
+      title: null,
+      sessionId: null,
+      position: 0,
+      duration: 7200,
+      timer: null
+    };
+
+    // Poster Color Palettes based on Genre
+    const genreColors = {
+      'Sci-Fi': 'from-cyan-900 to-indigo-950',
+      'Action': 'from-rose-950 to-amber-950',
+      'Crime': 'from-emerald-950 to-zinc-950',
+      'Comedy': 'from-yellow-950 to-stone-900',
+      'Drama': 'from-purple-950 to-dark-950',
+      'Thriller': 'from-red-950 to-slate-950',
+      'Adventure': 'from-teal-950 to-blue-950',
+      'Mystery': 'from-violet-950 to-neutral-950',
+      'Documentary': 'from-sky-950 to-dark-900',
+    };
+
+    async function initApp() {
+      lucide.createIcons();
+      await fetchUsers();
+      await fetchCatalog();
+      await fetchPersonalizedRecs();
+      fetchStats();
+    }
+
+    // 1. Fetch Users
+    async function fetchUsers() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/users?limit=8`);
+        const data = await res.json();
+        users = data.users || [];
+        const selector = document.getElementById('userSelector');
+        selector.innerHTML = '';
+        users.forEach((u, i) => {
+          const opt = document.createElement('option');
+          opt.value = u.user_id;
+          opt.textContent = `${u.email} (${u.plan_name})`;
+          selector.appendChild(opt);
+        });
+        if (users.length > 0) {
+          currentUser = users[0];
+          selector.value = currentUser.user_id;
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    }
+
+    function onUserChanged(userId) {
+      currentUser = users.find(u => u.user_id === userId);
+      if (currentUser) {
+        showToast(`Switched active profile to ${currentUser.email} (${currentUser.plan_name})`);
+        fetchPersonalizedRecs();
+      }
+    }
+
+    // 2. Fetch Catalog
+    async function fetchCatalog() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/catalog?limit=80`);
+        const data = await res.json();
+        catalog = data.items || [];
+        
+        if (catalog.length > 0) {
+          // Set hero to prominent movie
+          currentHero = catalog.find(m => m.genres && m.genres.includes('Sci-Fi')) || catalog[0];
+          renderHero(currentHero);
+          renderCarousels();
+        }
+      } catch (err) {
+        console.error("Error fetching catalog:", err);
+      }
+    }
+
+    function renderHero(item) {
+      document.getElementById('heroTitle').textContent = item.title;
+      document.getElementById('heroSynopsis').textContent = item.synopsis;
+      document.getElementById('heroYear').textContent = item.release_year || '2024';
+      document.getElementById('heroRating').textContent = item.maturity_rating || 'U/A 13+';
+      
+      const credits = document.getElementById('heroCredits');
+      credits.innerHTML = `
+        <p><span class="text-zinc-200 font-semibold">Director:</span> ${item.director || 'Guillermo del Toro'}</p>
+        <p><span class="text-zinc-200 font-semibold">Cast:</span> ${(item.cast || []).join(', ')}</p>
+      `;
+
+      // Set animated cinematic gradient background
+      const genre = (item.genres && item.genres[0]) || 'Sci-Fi';
+      const gradient = genreColors[genre] || 'from-dark-900 to-dark-950';
+      document.getElementById('heroBackdrop').className = `w-full h-full bg-gradient-to-r ${gradient} filter brightness-40 scale-105`;
+    }
+
+    function playCurrentHero() {
+      if (currentHero) {
+        openPlayer(currentHero);
+      }
+    }
+
+    // 3. Render Poster Card Helper
+    function createPosterHTML(item, badgeText = null) {
+      const genre = (item.genres && item.genres[0]) || 'Cinema';
+      const colorCls = genreColors[genre] || 'from-dark-800 to-dark-900';
+      const year = item.release_year || 2024;
+      const rating = item.maturity_rating || 'U/A 13+';
+      const safeItem = JSON.stringify(item).replace(/"/g, '&quot;');
+
+      return `
+        <div onclick='openPlayer(${safeItem})' class="poster-card cursor-pointer group bg-dark-900 rounded-xl overflow-hidden border border-white/5 hover:border-brand-500/50 flex flex-col">
+          <!-- Poster Artwork -->
+          <div class="h-44 sm:h-52 bg-gradient-to-br ${colorCls} p-4 flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between z-10">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-black/60 text-zinc-300 backdrop-blur-sm">${genre}</span>
+              ${badgeText ? `<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-brand-600 text-white shadow">${badgeText}</span>` : ''}
+            </div>
+
+            <!-- Central Icon Glyph -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-40 transition scale-90 group-hover:scale-100">
+              <i data-lucide="film" class="w-20 h-20 text-white"></i>
+            </div>
+
+            <div class="z-10">
+              <span class="text-[10px] text-zinc-400 font-mono">${rating} • ${year}</span>
+            </div>
+          </div>
+
+          <!-- Metadata info -->
+          <div class="p-3 bg-dark-900 flex-1 flex flex-col justify-between space-y-1">
+            <h4 class="text-xs font-bold text-white group-hover:text-brand-400 transition truncate">${item.title}</h4>
+            <p class="text-[11px] text-zinc-400 line-clamp-2 leading-tight">${item.synopsis}</p>
+            <div class="pt-2 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+              <span>${Math.round((item.duration_seconds || 6000) / 60)} min</span>
+              <span class="group-hover:text-white flex items-center gap-1 font-bold text-brand-500">
+                <i data-lucide="play" class="w-3 h-3 fill-brand-500"></i> Watch
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCarousels() {
+      // Trending
+      const trending = catalog.slice(0, 6);
+      document.getElementById('trendingGrid').innerHTML = trending.map(i => createPosterHTML(i, 'TOP 10')).join('');
+
+      // Sci-Fi
+      const scifi = catalog.filter(i => i.genres && i.genres.includes('Sci-Fi')).slice(0, 6);
+      document.getElementById('scifiGrid').innerHTML = scifi.map(i => createPosterHTML(i)).join('');
+
+      // Crime
+      const crime = catalog.filter(i => i.genres && (i.genres.includes('Crime') || i.genres.includes('Thriller'))).slice(0, 6);
+      document.getElementById('crimeGrid').innerHTML = crime.map(i => createPosterHTML(i)).join('');
+
+      lucide.createIcons();
+    }
+
+    // 4. Fetch Personalized Recommendations
+    async function fetchPersonalizedRecs() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/recommendations/${currentUser.user_id}?limit=6`);
+        const data = await res.json();
+        const hits = data.recommendations || [];
+        const container = document.getElementById('recsGrid');
+        if (hits.length > 0) {
+          container.innerHTML = hits.map(h => {
+            const meta = h.metadata || {};
+            const movieItem = {
+              content_id: h.content_id,
+              title: meta.title || h.content_id,
+              synopsis: h.chunk_text,
+              genres: meta.genres || ['Recommended'],
+              release_year: meta.release_year || 2024,
+              duration_seconds: 7200,
+            };
+            const matchScore = `${Math.round(h.similarity_score * 100)}% Match`;
+            return createPosterHTML(movieItem, matchScore);
+          }).join('');
+        }
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Error fetching recs:", err);
+      }
+    }
+
+    // 5. Semantic Vector Search
+    async function executeSemanticSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/search/semantic`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, limit: 6 })
+        });
+        const data = await res.json();
+        const hits = data.hits || [];
+
+        const section = document.getElementById('searchResultsSection');
+        const grid = document.getElementById('searchResultsGrid');
+        document.getElementById('searchSubheading').textContent = `Query: "${q}" • Ranked by Cosine Similarity`;
+        
+        section.classList.remove('hidden');
+        section.scrollIntoView({ behavior: 'smooth' });
+
+        if (hits.length === 0) {
+          grid.innerHTML = `<div class="col-span-full py-8 text-center text-zinc-400">No matching titles found in pgvector catalog.</div>`;
+        } else {
+          grid.innerHTML = hits.map(h => {
+            const meta = h.metadata || {};
+            const item = {
+              content_id: h.content_id,
+              title: meta.title || h.content_id,
+              synopsis: h.chunk_text,
+              genres: meta.genres || ['AI Match'],
+              release_year: meta.release_year || 2024,
+              duration_seconds: 7200
+            };
+            return createPosterHTML(item, `${Math.round(h.similarity_score * 100)}% Sim`);
+          }).join('');
+        }
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Search error:", err);
+      }
+    }
+
+    function quickSearch(q) {
+      document.getElementById('searchInput').value = q;
+      executeSemanticSearch();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchResultsSection').classList.add('hidden');
+      document.getElementById('searchInput').value = '';
+    }
+
+    // 6. Video Player Simulation & Kafka Telemetry Emitter
+    function openPlayer(item) {
+      if (!currentUser) return;
+      playerState.contentId = item.content_id;
+      playerState.title = item.title;
+      playerState.sessionId = crypto.randomUUID();
+      playerState.position = 0;
+      playerState.duration = item.duration_seconds || 7200;
+      playerState.isPlaying = true;
+
+      document.getElementById('playerMovieTitle').textContent = item.title;
+      document.getElementById('canvasTitleOverlay').textContent = item.title;
+      document.getElementById('playerSessionId').textContent = `Session: ${playerState.sessionId}`;
+      document.getElementById('playerActiveUser').textContent = `${currentUser.email} (${currentUser.plan_name})`;
+      document.getElementById('playerTotalTime').textContent = formatTime(playerState.duration);
+      
+      updatePlayerUI();
+      document.getElementById('playerModal').classList.remove('hidden');
+      
+      // Send video_play event to Kafka
+      emitKafkaEvent('video_play', 0);
+
+      // Start tick interval
+      startPlayerTimer();
+      animateCanvas();
+    }
+
+    function closePlayer() {
+      if (playerState.isPlaying) {
+        emitKafkaEvent('video_stop', playerState.position);
+      }
+      playerState.isPlaying = false;
+      clearInterval(playerState.timer);
+      document.getElementById('playerModal').classList.add('hidden');
+    }
+
+    function togglePlayPause() {
+      playerState.isPlaying = !playerState.isPlaying;
+      updatePlayerUI();
+      const evType = playerState.isPlaying ? 'video_play' : 'video_pause';
+      emitKafkaEvent(evType, playerState.position);
+    }
+
+    function seekOffset(seconds) {
+      playerState.position = Math.max(0, Math.min(playerState.duration, playerState.position + seconds));
+      updatePlayerUI();
+      emitKafkaEvent('video_seek', playerState.position);
+    }
+
+    function completePlayback() {
+      playerState.position = playerState.duration;
+      playerState.isPlaying = false;
+      updatePlayerUI();
+      emitKafkaEvent('video_complete', playerState.duration);
+      showToast(`🎉 Completed "${playerState.title}"! Watched 100%.`);
+    }
+
+    function onScrubInput(pct) {
+      playerState.position = Math.round((pct / 100) * playerState.duration);
+      updatePlayerUI();
+      emitKafkaEvent('video_seek', playerState.position);
+    }
+
+    function startPlayerTimer() {
+      clearInterval(playerState.timer);
+      playerState.timer = setInterval(() => {
+        if (playerState.isPlaying) {
+          playerState.position += 1;
+          updatePlayerUI();
+          // Heartbeat to Kafka every 15s of active streaming
+          if (playerState.position % 15 === 0) {
+            emitKafkaEvent('video_play', playerState.position);
+          }
+        }
+      }, 1000);
+    }
+
+    function updatePlayerUI() {
+      const pct = (playerState.position / playerState.duration) * 100;
+      document.getElementById('playerScrubber').value = pct;
+      document.getElementById('playerCurrentTime').textContent = formatTime(playerState.position);
+
+      const label = document.getElementById('playPauseLabel');
+      const iconWrap = document.getElementById('playerStateIcon');
+      if (playerState.isPlaying) {
+        label.textContent = "Pause";
+        iconWrap.innerHTML = '<i data-lucide="pause" class="w-8 h-8 fill-white"></i>';
+      } else {
+        label.textContent = "Resume";
+        iconWrap.innerHTML = '<i data-lucide="play" class="w-8 h-8 fill-white ml-1"></i>';
+      }
+      lucide.createIcons();
+    }
+
+    function formatTime(secs) {
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      if (h > 0) {
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    // 7. Emit Kafka Event via Backend Core API
+    async function emitKafkaEvent(eventType, position) {
+      if (!currentUser || !playerState.contentId) return;
+
+      const payload = {
+        user_id: currentUser.user_id,
+        session_id: playerState.sessionId,
+        device_id: crypto.randomUUID(),
+        device_type: "web_desktop",
+        app_version: "3.4.1",
+        content_id: playerState.contentId,
+        event_type: eventType,
+        position_seconds: parseFloat(position),
+        playback_seconds: eventType === 'video_play' ? 15.0 : 0.0
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/events/playback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const ack = await res.json();
+        
+        // Show Live Telemetry Toast HUD
+        showTelemetryHUD(ack);
+      } catch (err) {
+        console.error("Telemetry emission error:", err);
+      }
+    }
+
+    function showTelemetryHUD(ack) {
+      const toast = document.getElementById('telemetryToast');
+      const details = document.getElementById('telemetryDetails');
+      details.innerHTML = `
+        <b>Event:</b> <span class="text-white">${ack.event_type}</span> | <b>Pos:</b> ${ack.position_seconds}s<br>
+        <b>Topic:</b> ${ack.topic} | <b>EventID:</b> ${ack.event_id ? ack.event_id.slice(0, 8) + '...' : ''}
+      `;
+      toast.classList.remove('translate-y-32', 'opacity-0');
+      clearTimeout(window._toastTimeout);
+      window._toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-32', 'opacity-0');
+      }, 4000);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('telemetryToast');
+      const details = document.getElementById('telemetryDetails');
+      details.innerHTML = `<span class="text-white font-sans">${msg}</span>`;
+      toast.classList.remove('translate-y-32', 'opacity-0');
+      clearTimeout(window._toastTimeout);
+      window._toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-32', 'opacity-0');
+      }, 3000);
+    }
+
+    // 8. RAG Assistant
+    function openRAGModal() {
+      document.getElementById('ragModal').classList.remove('hidden');
+    }
+
+    function closeRAGModal() {
+      document.getElementById('ragModal').classList.add('hidden');
+    }
+
+    function openRAGWithQuery(q) {
+      openRAGModal();
+      document.getElementById('ragInput').value = q;
+      sendRAGQuery();
+    }
+
+    async function sendRAGQuery() {
+      const input = document.getElementById('ragInput');
+      const q = input.value.trim();
+      if (!q) return;
+
+      const chat = document.getElementById('ragChatArea');
+      
+      // User message
+      chat.innerHTML += `
+        <div class="flex items-start gap-3 justify-end">
+          <div class="bg-brand-600 text-white p-3 rounded-xl max-w-[85%] font-medium">
+            ${q}
+          </div>
+        </div>
+      `;
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+
+      // Typing indicator
+      const loaderId = 'loader_' + Date.now();
+      chat.innerHTML += `
+        <div id="${loaderId}" class="flex items-center gap-2 text-zinc-400">
+          <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-brand-400"></i>
+          <span>Retrieving from pgvector & synthesizing...</span>
+        </div>
+      `;
+      lucide.createIcons();
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/rag/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, top_k: 3 })
+        });
+        const data = await res.json();
+        
+        document.getElementById(loaderId)?.remove();
+
+        chat.innerHTML += `
+          <div class="flex items-start gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+            <i data-lucide="bot" class="w-4 h-4 text-brand-400 mt-0.5"></i>
+            <div class="space-y-2">
+              <p class="text-zinc-200 leading-relaxed">${data.answer.replace(/\n/g, '<br>')}</p>
+              ${data.sources && data.sources.length ? `
+                <div class="pt-2 border-t border-white/10 text-[10px] text-zinc-400 font-mono">
+                  <b>Retrieved Context:</b> ${data.sources.map(s => `${s.title} (${Math.round(s.score*100)}% match)`).join(' • ')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+        lucide.createIcons();
+        chat.scrollTop = chat.scrollHeight;
+      } catch (err) {
+        document.getElementById(loaderId)?.remove();
+        chat.innerHTML += `<div class="text-red-400">Failed to connect to RAG endpoint.</div>`;
+      }
+    }
+
+    // 9. Stats Modal
+    async function openStatsModal() {
+      document.getElementById('statsModal').classList.remove('hidden');
+      await fetchStats();
+    }
+
+    function closeStatsModal() {
+      document.getElementById('statsModal').classList.add('hidden');
+    }
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/stats`);
+        const stats = await res.json();
+        document.getElementById('statRawEvents').textContent = Number(stats.raw_playback_events).toLocaleString();
+        document.getElementById('statSessions').textContent = Number(stats.watch_sessions).toLocaleString();
+        document.getElementById('statTitles').textContent = stats.catalog_titles;
+        document.getElementById('statVectors').textContent = stats.vector_embeddings;
+      } catch (err) {
+        console.error("Stats fetch error:", err);
+      }
+    }
+
+    // 10. Canvas Visualizer for Simulated Screen
+    function animateCanvas() {
+      const canvas = document.getElementById('cinemaCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let t = 0;
+
+      function renderFrame() {
+        if (!playerState.isPlaying && document.getElementById('playerModal').classList.contains('hidden')) return;
+
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+
+        ctx.fillStyle = '#090a0f';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Particle wave effect
+        ctx.strokeStyle = 'rgba(225, 29, 72, 0.25)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = 0; x < canvas.width; x += 10) {
+          const y = (canvas.height / 2) + Math.sin((x * 0.01) + t) * 40 * Math.sin(t * 0.5);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.2)';
+        ctx.beginPath();
+        for (let x = 0; x < canvas.width; x += 12) {
+          const y = (canvas.height / 2) + Math.cos((x * 0.008) - t) * 35;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        t += 0.03;
+        requestAnimationFrame(renderFrame);
+      }
+      renderFrame();
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
