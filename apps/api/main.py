@@ -644,21 +644,21 @@ def explain_recommendation(user_id: str, content_id: str):
 # In-UI Traffic Simulator Controls
 # =============================================================================
 @app.post("/api/v1/simulator/start")
-def start_traffic_simulator(eps: int = 25):
+async def start_traffic_simulator(eps: int = 25):
     """Start the background streaming traffic generator."""
     simulator.start(eps=eps)
     return {"status": "started", "target_eps": eps}
 
 
 @app.post("/api/v1/simulator/stop")
-def stop_traffic_simulator():
+async def stop_traffic_simulator():
     """Stop the background streaming traffic generator."""
     simulator.stop()
     return {"status": "stopped", "events_emitted": simulator.events_emitted}
 
 
 @app.get("/api/v1/simulator/status")
-def simulator_status():
+async def simulator_status():
     return {
         "running": simulator.is_running,
         "target_eps": simulator.target_eps,
