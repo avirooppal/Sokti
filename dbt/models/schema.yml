@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_playback_events
+    description: "Cleaned and validated playback events"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['video_play', 'video_pause', 'video_seek', 'video_stop', 'video_complete']
+      - name: user_id
+        tests:
+          - not_null
+      - name: content_id
+        tests:
+          - not_null
+
+  - name: int_watch_sessions
+    description: "Sessionized watch episodes with duration and completion"
+    columns:
+      - name: session_id
+        tests:
+          - not_null
+      - name: user_id
+        tests:
+          - not_null
+
+  - name: mart_daily_platform_metrics
+    description: "Daily aggregated active users and stream consumption"
+    columns:
+      - name: metric_date
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_churn_features
+    description: "Machine learning feature store for recommendation ranking and churn"
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null

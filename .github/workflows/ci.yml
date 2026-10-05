@@ -1,0 +1,75 @@
+name: Sokti Data Platform CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sokti
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.3-alpine
+        env:
+          CLICKHOUSE_DB: sokti
+          CLICKHOUSE_USER: default
+          CLICKHOUSE_PASSWORD: sokti_pass
+        ports:
+          - 8123:8123
+
+      mongodb:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: admin
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest httpx fastapi clickhouse-connect psycopg2-binary pymongo pydantic fastembed
+
+      - name: Lint with flake8
+        run: |
+          # Stop build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,venv,.venv
+
+      - name: Run Test Suite
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          PGVECTOR_HOST: localhost
+          PGVECTOR_PORT: 5432
+          CLICKHOUSE_HOST: localhost
+          CLICKHOUSE_HTTP_PORT: 8123
+          MONGO_HOST: localhost
+          MONGO_PORT: 27017
+        run: |
+          pytest -v tests/integration/test_apis.py

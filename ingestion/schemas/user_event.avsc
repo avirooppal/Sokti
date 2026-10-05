@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "name": "UserEvent",
+  "namespace": "com.sokti.ott.events",
+  "doc": "Telemetry event for user activities like login, logout, watchlist addition",
+  "fields": [
+    {"name": "event_id", "type": "string"},
+    {"name": "event_type", "type": {
+      "type": "enum",
+      "name": "UserEventType",
+      "symbols": ["login", "logout", "watchlist_add", "content_impression"]
+    }},
+    {"name": "schema_version", "type": "string", "default": "1.0.0"},
+    {"name": "user_id", "type": "string"},
+    {"name": "session_id", "type": "string"},
+    {"name": "device_id", "type": "string"},
+    {"name": "content_id", "type": ["null", "string"], "default": null},
+    {"name": "metadata_json", "type": ["null", "string"], "default": null},
+    {"name": "event_time", "type": "string"},
+    {"name": "ingestion_time", "type": "string"}
+  ]
+}

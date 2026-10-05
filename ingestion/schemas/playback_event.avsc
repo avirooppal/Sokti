@@ -1,0 +1,25 @@
+{
+  "type": "record",
+  "name": "PlaybackEvent",
+  "namespace": "com.sokti.ott.events",
+  "doc": "Telemetry event for video playback lifecycle (play, pause, seek, stop, complete)",
+  "fields": [
+    {"name": "event_id", "type": "string", "doc": "Unique UUID for deduplication and idempotency"},
+    {"name": "event_type", "type": {
+      "type": "enum",
+      "name": "PlaybackEventType",
+      "symbols": ["video_play", "video_pause", "video_seek", "video_stop", "video_complete"]
+    }},
+    {"name": "schema_version", "type": "string", "default": "1.0.0"},
+    {"name": "user_id", "type": "string", "doc": "Pseudonymous user UUID, partition key"},
+    {"name": "session_id", "type": "string", "doc": "Playback session UUID"},
+    {"name": "device_id", "type": "string"},
+    {"name": "device_type", "type": "string", "doc": "smart_tv, mobile, tablet, web, streaming_stick"},
+    {"name": "app_version", "type": "string"},
+    {"name": "content_id", "type": "string", "doc": "Content identifier from catalog"},
+    {"name": "position_seconds", "type": "float", "doc": "Current video playback position in seconds"},
+    {"name": "playback_seconds", "type": "float", "doc": "Total accumulated watch time in current session"},
+    {"name": "event_time", "type": "string", "doc": "Client event timestamp in UTC (ISO-8601 or YYYY-MM-DD HH:MM:SS.mmm)"},
+    {"name": "ingestion_time", "type": "string", "doc": "Server ingestion timestamp in UTC"}
+  ]
+}

@@ -1,0 +1,302 @@
+[
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-05T17:44:03.200242+00:00",
+    "run": {
+      "runId": "8eb59bb5-0afd-4902-a43c-9becadb88e3b",
+      "facets": {
+        "nominalTime": {
+          "nominalStartTime": "2026-10-05T17:44:03.200242+00:00"
+        }
+      }
+    },
+    "job": {
+      "namespace": "sokti.data.platform",
+      "name": "cdc_postgres_to_kafka",
+      "facets": {
+        "jobType": {
+          "processingType": "BATCH"
+        }
+      }
+    },
+    "inputs": [
+      {
+        "namespace": "postgres",
+        "name": "public.users",
+        "facets": {
+          "dataSource": {
+            "name": "postgres",
+            "uri": "postgres://public.users"
+          }
+        }
+      },
+      {
+        "namespace": "postgres",
+        "name": "public.subscriptions",
+        "facets": {
+          "dataSource": {
+            "name": "postgres",
+            "uri": "postgres://public.subscriptions"
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "kafka",
+        "name": "sokti_cdc.public.users",
+        "facets": {
+          "dataSource": {
+            "name": "kafka",
+            "uri": "kafka://sokti_cdc.public.users"
+          }
+        }
+      },
+      {
+        "namespace": "kafka",
+        "name": "sokti_cdc.public.subscriptions",
+        "facets": {
+          "dataSource": {
+            "name": "kafka",
+            "uri": "kafka://sokti_cdc.public.subscriptions"
+          }
+        }
+      }
+    ],
+    "producer": "https://github.com/sokti/platform/openlineage-emitter:v1.0"
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-05T17:44:03.200242+00:00",
+    "run": {
+      "runId": "681277a3-1176-4f6a-81c8-30cfacf61334",
+      "facets": {
+        "nominalTime": {
+          "nominalStartTime": "2026-10-05T17:44:03.200242+00:00"
+        }
+      }
+    },
+    "job": {
+      "namespace": "sokti.data.platform",
+      "name": "streaming_playback_enrichment",
+      "facets": {
+        "jobType": {
+          "processingType": "STREAMING"
+        }
+      }
+    },
+    "inputs": [
+      {
+        "namespace": "kafka",
+        "name": "ott.playback.events.v1",
+        "facets": {
+          "dataSource": {
+            "name": "kafka",
+            "uri": "kafka://ott.playback.events.v1"
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "clickhouse",
+        "name": "sokti.raw_playback_events",
+        "facets": {
+          "dataSource": {
+            "name": "clickhouse",
+            "uri": "clickhouse://sokti.raw_playback_events"
+          }
+        }
+      },
+      {
+        "namespace": "clickhouse",
+        "name": "sokti.agg_content_hourly",
+        "facets": {
+          "dataSource": {
+            "name": "clickhouse",
+            "uri": "clickhouse://sokti.agg_content_hourly"
+          }
+        }
+      },
+      {
+        "namespace": "kafka",
+        "name": "ott.playback.dlq.v1",
+        "facets": {
+          "dataSource": {
+            "name": "kafka",
+            "uri": "kafka://ott.playback.dlq.v1"
+          }
+        }
+      }
+    ],
+    "producer": "https://github.com/sokti/platform/openlineage-emitter:v1.0"
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-05T17:44:03.200242+00:00",
+    "run": {
+      "runId": "9a8b8f64-b378-4bb8-816b-3691b2ed372c",
+      "facets": {
+        "nominalTime": {
+          "nominalStartTime": "2026-10-05T17:44:03.200242+00:00"
+        }
+      }
+    },
+    "job": {
+      "namespace": "sokti.data.platform",
+      "name": "lake_archival_to_minio",
+      "facets": {
+        "jobType": {
+          "processingType": "BATCH"
+        }
+      }
+    },
+    "inputs": [
+      {
+        "namespace": "kafka",
+        "name": "ott.playback.events.v1",
+        "facets": {
+          "dataSource": {
+            "name": "kafka",
+            "uri": "kafka://ott.playback.events.v1"
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "minio_s3",
+        "name": "sokti-raw/date=YYYY-MM-DD/hour=HH/",
+        "facets": {
+          "dataSource": {
+            "name": "minio_s3",
+            "uri": "minio_s3://sokti-raw/date=YYYY-MM-DD/hour=HH/"
+          }
+        }
+      }
+    ],
+    "producer": "https://github.com/sokti/platform/openlineage-emitter:v1.0"
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-05T17:44:03.200242+00:00",
+    "run": {
+      "runId": "6646b44b-bf47-4f5e-869c-2b1479baf7c0",
+      "facets": {
+        "nominalTime": {
+          "nominalStartTime": "2026-10-05T17:44:03.200242+00:00"
+        }
+      }
+    },
+    "job": {
+      "namespace": "sokti.data.platform",
+      "name": "ai_content_vectorization",
+      "facets": {
+        "jobType": {
+          "processingType": "BATCH"
+        }
+      }
+    },
+    "inputs": [
+      {
+        "namespace": "mongodb",
+        "name": "sokti_metadata.movies",
+        "facets": {
+          "dataSource": {
+            "name": "mongodb",
+            "uri": "mongodb://sokti_metadata.movies"
+          }
+        }
+      },
+      {
+        "namespace": "mongodb",
+        "name": "sokti_metadata.series",
+        "facets": {
+          "dataSource": {
+            "name": "mongodb",
+            "uri": "mongodb://sokti_metadata.series"
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "pgvector",
+        "name": "public.content_embeddings",
+        "facets": {
+          "dataSource": {
+            "name": "pgvector",
+            "uri": "pgvector://public.content_embeddings"
+          }
+        }
+      }
+    ],
+    "producer": "https://github.com/sokti/platform/openlineage-emitter:v1.0"
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-05T17:44:03.200242+00:00",
+    "run": {
+      "runId": "ecab1538-c52c-49c5-a180-ffaf6f71d0d8",
+      "facets": {
+        "nominalTime": {
+          "nominalStartTime": "2026-10-05T17:44:03.200242+00:00"
+        }
+      }
+    },
+    "job": {
+      "namespace": "sokti.data.platform",
+      "name": "dbt_analytics_marts",
+      "facets": {
+        "jobType": {
+          "processingType": "BATCH"
+        }
+      }
+    },
+    "inputs": [
+      {
+        "namespace": "clickhouse",
+        "name": "sokti.raw_playback_events",
+        "facets": {
+          "dataSource": {
+            "name": "clickhouse",
+            "uri": "clickhouse://sokti.raw_playback_events"
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "clickhouse",
+        "name": "sokti.mart_daily_platform_metrics",
+        "facets": {
+          "dataSource": {
+            "name": "clickhouse",
+            "uri": "clickhouse://sokti.mart_daily_platform_metrics"
+          }
+        }
+      },
+      {
+        "namespace": "clickhouse",
+        "name": "sokti.mart_churn_features",
+        "facets": {
+          "dataSource": {
+            "name": "clickhouse",
+            "uri": "clickhouse://sokti.mart_churn_features"
+          }
+        }
+      },
+      {
+        "namespace": "clickhouse",
+        "name": "sokti.mart_user_retention",
+        "facets": {
+          "dataSource": {
+            "name": "clickhouse",
+            "uri": "clickhouse://sokti.mart_user_retention"
+          }
+        }
+      }
+    ],
+    "producer": "https://github.com/sokti/platform/openlineage-emitter:v1.0"
+  }
+]

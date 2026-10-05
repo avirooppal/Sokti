@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "SubscriptionEvent",
+  "namespace": "com.sokti.ott.events",
+  "doc": "Transactional change event for user subscriptions",
+  "fields": [
+    {"name": "event_id", "type": "string"},
+    {"name": "event_type", "type": "string", "default": "subscription_event"},
+    {"name": "schema_version", "type": "string", "default": "1.0.0"},
+    {"name": "user_id", "type": "string"},
+    {"name": "subscription_id", "type": "string"},
+    {"name": "plan_id", "type": "string"},
+    {"name": "status", "type": {
+      "type": "enum",
+      "name": "SubscriptionStatus",
+      "symbols": ["active", "past_due", "canceled", "expired"]
+    }},
+    {"name": "price_cents", "type": "int"},
+    {"name": "payment_method", "type": "string"},
+    {"name": "event_time", "type": "string"},
+    {"name": "ingestion_time", "type": "string"}
+  ]
+}

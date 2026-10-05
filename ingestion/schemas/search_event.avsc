@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "SearchEvent",
+  "namespace": "com.sokti.ott.events",
+  "doc": "Telemetry event for user search queries and clicks",
+  "fields": [
+    {"name": "event_id", "type": "string"},
+    {"name": "event_type", "type": "string", "default": "search"},
+    {"name": "schema_version", "type": "string", "default": "1.0.0"},
+    {"name": "user_id", "type": "string"},
+    {"name": "session_id", "type": "string"},
+    {"name": "device_id", "type": "string"},
+    {"name": "device_type", "type": "string"},
+    {"name": "app_version", "type": "string"},
+    {"name": "query_text", "type": "string"},
+    {"name": "results_count", "type": "int"},
+    {"name": "selected_content_id", "type": ["null", "string"], "default": null},
+    {"name": "event_time", "type": "string"},
+    {"name": "ingestion_time", "type": "string"}
+  ]
+}

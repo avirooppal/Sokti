@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: sokti
+    database: sokti
+    tables:
+      - name: raw_playback_events
+      - name: raw_search_events
+      - name: raw_recommendation_events
+      - name: dim_content
+      - name: dim_device
+      - name: fact_watch_sessions

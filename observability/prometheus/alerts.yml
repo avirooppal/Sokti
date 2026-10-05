@@ -1,0 +1,38 @@
+groups:
+  - name: sokti_data_platform_alerts
+    rules:
+      - alert: ConsumerLagHigh
+        expr: sokti_kafka_consumer_lag > 500
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Kafka Consumer Lag on topic {{ $labels.topic }}"
+          description: "Consumer lag is {{ $value }}, exceeding the 500 threshold for > 2m."
+
+      - alert: DLQRateElevated
+        expr: rate(sokti_dlq_messages_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Dead Letter Queue error rate elevated"
+          description: "DLQ ingestion rate is {{ $value }} msgs/sec. Poison pills or schema errors detected."
+
+      - alert: DataQualityFailure
+        expr: sokti_dq_check_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Sokti Data Quality check failed for check: {{ $labels.check }}"
+          description: "Automated DQ validation reported failure or out-of-bounds anomaly."
+
+      - alert: AirflowTaskFailure
+        expr: sokti_airflow_task_failures_total > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Airflow batch DAG task failure detected"
+          description: "One or more batch tasks failed. Check Airflow logs for traceback."

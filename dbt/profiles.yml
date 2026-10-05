@@ -1,0 +1,15 @@
+sokti_clickhouse:
+  target: dev
+  outputs:
+    dev:
+      type: clickhouse
+      schema: sokti
+      host: "{{ env_var('CLICKHOUSE_HOST', 'localhost') }}"
+      port: "{{ env_var('CLICKHOUSE_HTTP_PORT', '8123') | int }}"
+      user: "{{ env_var('CLICKHOUSE_USER', 'default') }}"
+      password: "{{ env_var('CLICKHOUSE_PASSWORD', 'sokti_pass') }}"
+      secure: False
+      connect_timeout: 10
+      custom_settings:
+        async_insert: 1
+        wait_for_async_insert: 1

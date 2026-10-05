@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: "clickhouse"
+    static_configs:
+      - targets: ["clickhouse:8123"]
+
+  - job_name: "airflow"
+    static_configs:
+      - targets: ["airflow:8080"]
+
+  - job_name: "sokti-apis"
+    static_configs:
+      - targets: ["host.docker.internal:8000", "host.docker.internal:8001"]

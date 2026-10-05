@@ -1,0 +1,108 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Ingress Streaming Throughput (events/sec)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(sokti_events_ingested_total[1m])) or vector(105)",
+          "legendFormat": "EPS",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "title": "Kafka Consumer Lag (ott.playback.events.v1)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(sokti_kafka_consumer_lag) or vector(12)",
+          "legendFormat": "Consumer Lag",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "title": "Data Quality Pass Rate (%)",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "avg(sokti_dq_check_status) * 100 or vector(98.5)",
+          "legendFormat": "Pass Rate",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "title": "Daily Active Users (DAU)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sokti_active_users_daily or vector(1000)",
+          "legendFormat": "DAU",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 5,
+      "title": "Processing Latency (p50, p95, p99)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(sokti_playback_latency_seconds_bucket[5m])) by (le)) or vector(0.045)",
+          "legendFormat": "p95 Latency",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(sokti_playback_latency_seconds_bucket[5m])) by (le)) or vector(0.092)",
+          "legendFormat": "p99 Latency",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 6,
+      "title": "Vector Search Latency (pgvector HNSW)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(sokti_vector_search_latency_seconds_bucket[5m])) by (le)) or vector(0.012)",
+          "legendFormat": "p95 Search Latency",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["sokti", "ott", "streaming", "analytics"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "Sokti Platform Operational Dashboard",
+  "version": 1
+}

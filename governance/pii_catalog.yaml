@@ -1,0 +1,54 @@
+# Sokti Data Governance & PII Catalog (DPDP Act & GDPR Compliance)
+version: "1.0.0"
+updated_at: "2026-10-05T00:00:00Z"
+data_controller: "Sokti Streaming Media Ltd."
+
+classifications:
+  CONFIDENTIAL_PII:
+    description: "Directly identifiable individual data subject fields. Strict encryption and masking mandatory."
+    retention_days: 730
+    dpdp_category: "Personal Data"
+    fields:
+      - table: "public.users"
+        column: "email"
+        masking_strategy: "PARTIAL_EMAIL_MASK"
+        example: "j***e@domain.com"
+      - table: "public.users"
+        column: "phone"
+        masking_strategy: "PHONE_SUFFIX_MASK"
+        example: "+91-XXXXX-98765"
+  
+  PSEUDONYMOUS_IDENTIFIER:
+    description: "Indirect identifiers used for analytical aggregation and stateful stream tracking."
+    retention_days: 365
+    dpdp_category: "Technical Identifiers"
+    fields:
+      - table: "public.users"
+        column: "user_id"
+        masking_strategy: "HMAC_SHA256_OR_RAW_UUID"
+      - table: "public.devices"
+        column: "device_id"
+        masking_strategy: "RAW_UUID"
+      - table: "raw_playback_events"
+        column: "session_id"
+        masking_strategy: "RAW_UUID"
+
+  PUBLIC_METADATA:
+    description: "Non-personal OTT content catalog attributes."
+    retention_days: 3650
+    dpdp_category: "Public Data"
+    fields:
+      - table: "dim_content"
+        column: "content_id"
+        masking_strategy: "NONE"
+      - table: "dim_content"
+        column: "title"
+        masking_strategy: "NONE"
+      - table: "dim_content"
+        column: "genres"
+        masking_strategy: "NONE"
+
+deletion_sla_hours: 48
+compliance_frameworks:
+  - "Digital Personal Data Protection Act 2023 (India)"
+  - "General Data Protection Regulation (EU)"
