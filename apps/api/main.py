@@ -38,6 +38,9 @@ if REPO_ROOT not in sys.path:
 from governance.masking.pii_masker import mask_email, mask_phone
 from ai.retrieval.vector_search import VectorSearchEngine
 from ai.rag.content_qa_agent import ContentRAGAgent
+from ai.recommendations.market_basket import MarketBasketRecommender
+from ai.recommendations.matrix_factorization import CollaborativeFilteringEngine
+from ai.recommendations.hybrid_recommender import HybridRecommendationEngine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("sokti.core_api")
@@ -621,6 +624,107 @@ def user_recommendations(user_id: str, limit: int = 6):
         }
     except Exception as e:
         logger.error("Error generating user recommendations: %s", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/recommendations/co-watch/{content_id}")
+def get_cowatch_recommendations(content_id: str, limit: int = 6):
+    """
+    Market Basket Co-Watch Recommendations (Association Rule Mining).
+    Returns items with highest Lift and Confidence co-consumed with this content.
+    """
+    try:
+        mb = MarketBasketRecommender()
+        recs = mb.get_co_watched_recommendations(content_id, limit=limit)
+        cids = [r["content_id"] for r in recs]
+        
+        # Enrich from MongoDB / Posters
+        db = get_mongo_db()
+        enriched = []
+        for r in recs:
+            cid = r["content_id"]
+            doc = db["movies"].find_one({"content_id": cid}, {"_id": 0})
+            if not doc:
+                doc = db["series"].find_one({"content_id": cid}, {"_id": 0})
+            if not doc:
+                doc = {"content_id": cid, "title": cid, "genres": ["Sci-Fi"]}
+            doc = attach_cinematic_assets(doc)
+            doc["lift"] = r.get("lift", 1.0)
+            doc["confidence"] = r.get("confidence", 0.0)
+            doc["co_watch_count"] = r.get("co_watch_count", 0)
+            doc["strategy"] = "MARKET_BASKET_CO_WATCH"
+            enriched.append(doc)
+            
+        return {"content_id": content_id, "algorithm": "Market Basket Association Rule Mining", "recommendations": enriched}
+    except Exception as e:
+        logger.error("Error retrieving co-watch recommendations: %s", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/recommendations/collaborative/{user_id}")
+def get_collaborative_recommendations(user_id: str, limit: int = 8):
+    """
+    Netflix-Prize Latent Collaborative Filtering (Matrix Factorization - SVD).
+    Returns personalized latent preference picks decomposed from implicit feedback.
+    """
+    try:
+        cf = CollaborativeFilteringEngine()
+        recs = cf.get_collaborative_recommendations(user_id, limit=limit)
+        db = get_mongo_db()
+        enriched = []
+        for r in recs:
+            cid = r["content_id"]
+            doc = db["movies"].find_one({"content_id": cid}, {"_id": 0})
+            if not doc:
+                doc = db["series"].find_one({"content_id": cid}, {"_id": 0})
+            if not doc:
+                doc = {"content_id": cid, "title": cid, "genres": ["Sci-Fi"]}
+            doc = attach_cinematic_assets(doc)
+            doc["cf_score"] = r.get("score", 0.0)
+            doc["rank"] = r.get("rank", 1)
+            doc["strategy"] = "COLLABORATIVE_FILTERING_SVD"
+            enriched.append(doc)
+            
+        return {"user_id": user_id, "algorithm": "TruncatedSVD Latent Factorization", "recommendations": enriched}
+    except Exception as e:
+        logger.error("Error retrieving collaborative recommendations: %s", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/recommendations/hybrid/{user_id}")
+def get_hybrid_recommendations(user_id: str, limit: int = 8):
+    """
+    Multi-Stage Production Hybrid Recommendation Ensemble.
+    Blends:
+    - SVD Collaborative Filtering
+    - Market Basket Association Co-Watch Lift
+    - pgvector HNSW Cosine Similarity
+    Organized into curated homepage shelves.
+    """
+    try:
+        hybrid = HybridRecommendationEngine()
+        shelf_data = hybrid.get_personalized_recommendations(user_id, limit=limit)
+        
+        # Enrich all shelf items with cinematic media posters & streams
+        db = get_mongo_db()
+        for shelf_key, shelf in shelf_data.get("shelves", {}).items():
+            enriched_items = []
+            for item in shelf.get("items", []):
+                cid = item.get("content_id")
+                doc = db["movies"].find_one({"content_id": cid}, {"_id": 0})
+                if not doc:
+                    doc = db["series"].find_one({"content_id": cid}, {"_id": 0})
+                if not doc:
+                    doc = item
+                else:
+                    doc.update(item)
+                doc = attach_cinematic_assets(doc)
+                enriched_items.append(doc)
+            shelf["items"] = enriched_items
+
+        return shelf_data
+    except Exception as e:
+        logger.error("Error retrieving hybrid recommendations: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 

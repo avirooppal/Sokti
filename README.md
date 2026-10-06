@@ -293,27 +293,69 @@ The platform features an interactive OTT streaming application accessible at `ht
 
 ---
 
-## 🧠 AI, Semantic Search & RAG
+---
+
+## 🧠 Recommendation Systems Architecture
+
+Sokti implements a multi-stage, industry-standard recommendation engine mirroring the hybrid architectures of **Netflix** and **Amazon Video**:
 
 ```
-[MongoDB Catalog] ──> [Semantic Chunker] ──> [FastEmbed BAAI/bge-small-en-v1.5]
-                                                              │
-                                                              ▼ (384d Dense Vectors)
-[User Query] ───────> [pgvector HNSW Cosine Index] ────────> [Top-K Context]
-                                                              │
-                                                              ▼
-                                                     [Content RAG Agent]
-                                                              │
-                                                              ▼
-                                                   [Grounded Recommendation]
+                       ┌────────────────────────────────────────┐
+                       │  ClickHouse Raw Playback & Sessions    │
+                       └───────────────────┬────────────────────┘
+                                           │
+                ┌──────────────────────────┴──────────────────────────┐
+                ▼                                                     ▼
+┌───────────────────────────────┐                     ┌───────────────────────────────┐
+│     Stage 1: Market Basket    │                     │  Stage 2: Collaborative SVD   │
+│   Association Rule Mining     │                     │     (Netflix Prize ALS/SVD)   │
+├───────────────────────────────┤                     ├───────────────────────────────┤
+│ • Support(A), Support(A,B)    │                     │ • Implicit feedback score:    │
+│ • Confidence(A → B)           │                     │   R(u,i) = Compl% × ln(1+sec) │
+│ • Co-watch Lift = S(AB)/(S·S) │                     │ • Sparse CSR Decomposition    │
+│ • Powers: "Because You        │                     │ • Latent factors (k=16)       │
+│   Watched [X]"                │                     │ • Powers: "Top Picks for You" │
+└───────────────┬───────────────┘                     └───────────────┬───────────────┘
+                │                                                     │
+                │        ┌───────────────────────────────────┐        │
+                │        │  Stage 3: pgvector HNSW Embeddings│        │
+                │        │  (Semantic Plot & Tropes Vector)  │        │
+                │        └─────────────────┬─────────────────┘        │
+                │                          │                          │
+                └──────────────────┐       │       ┌──────────────────┘
+                                   ▼       ▼       ▼
+                       ┌────────────────────────────────────────┐
+                       │  Multi-Stage Hybrid Blending & Rerank  │
+                       │   Score = 0.40·SVD + 0.35·Lift +       │
+                       │           0.25·CosineSimilarity        │
+                       └───────────────────┬────────────────────┘
+                                           │
+                                           ▼
+                       ┌────────────────────────────────────────┐
+                       │  Curated Homepage Shelves & Web API    │
+                       │  • GET /api/v1/recommendations/co-watch│
+                       │  • GET /api/v1/recommendations/collab  │
+                       │  • GET /api/v1/recommendations/hybrid  │
+                       └────────────────────────────────────────┘
 ```
 
-- **Dense Embedding Model:** FastEmbed ONNX `BAAI/bge-small-en-v1.5` generating normalized 384-dimensional dense vectors.
-- **Vector Store:** PostgreSQL 16 `pgvector` with HNSW cosine distance index (`vector_cosine_ops`).
-- **REST Endpoints:**
-  - `POST /api/v1/search/semantic`: Pure vector similarity search.
-  - `POST /api/v1/rag/ask`: Grounded question-answering with citation scores.
-  - `GET /api/v1/recommendations/{user_id}`: Personalized hybrid recommendations combining ClickHouse churn engagement features with pgvector similarity.
+### Recommendation Engines:
+1. **Market Basket Co-Watch Association Rules (`ai/recommendations/market_basket.py`):**
+   - Extracts user co-consumption baskets from ClickHouse `raw_playback_events`.
+   - Computes Support, Confidence, and Lift metrics ($Lift > 1.0$) across pairwise content items.
+   - Persisted in ClickHouse table `sokti.rec_market_basket_rules`.
+   - Generates the *"Viewers Also Watched"* shelf with transparent lift badges (e.g. `3.4x Lift`).
+2. **Collaborative Filtering / Matrix Factorization (`ai/recommendations/matrix_factorization.py`):**
+   - Models implicit feedback using duration and completion: $R_{u,i} = \frac{\text{pos}}{\text{dur}} \times \ln(1 + \text{playback\_seconds})$.
+   - Performs low-rank matrix decomposition using `TruncatedSVD` ($k=16$ latent dimensions) over sparse CSR matrices.
+   - Predicts preference scores for unconsumed items and ranks top items in ClickHouse `sokti.rec_collaborative_scores`.
+   - Generates the *"Latent Crowd Top Picks"* shelf.
+3. **Multi-Stage Hybrid Ensemble (`ai/recommendations/hybrid_recommender.py`):**
+   - Fuses Latent Collaborative Filtering ($40\%$), Association Rule Co-watch Lift ($35\%$), and pgvector HNSW dense semantic similarity ($25\%$).
+   - Deduplicates previously consumed items and decorates candidate items with streaming video streams and cinematic posters.
+4. **Vector Search & RAG Assistant (`ai/retrieval/vector_search.py`, `ai/rag/content_qa_agent.py`):**
+   - FastEmbed ONNX `BAAI/bge-small-en-v1.5` embeddings (384 dimensions) indexed with pgvector HNSW cosine distance (`vector_cosine_ops`).
+   - Grounded RAG conversational search with relevance metrics and cited titles.
 
 ---
 

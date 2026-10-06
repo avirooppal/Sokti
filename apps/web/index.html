@@ -307,6 +307,30 @@
       <div id="recsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
     </section>
 
+    <!-- Shelf B2: Viewers Also Watched (Market Basket Co-Watch Association Rules) -->
+    <section id="marketBasketSection">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-cyan-400"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-white">Viewers Also Watched</h2>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-medium">Market Basket Association Rules (Lift > 1.0)</span>
+        </div>
+      </div>
+      <div id="marketBasketGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+    </section>
+
+    <!-- Shelf B3: Netflix Prize SVD Collaborative Picks -->
+    <section id="collaborativeSection">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="layers" class="w-5 h-5 text-purple-400"></i>
+          <h2 class="text-lg sm:text-xl font-bold text-white">Latent Crowd Top Picks</h2>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-medium">TruncatedSVD Matrix Factorization</span>
+        </div>
+      </div>
+      <div id="collaborativeGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+    </section>
+
     <!-- Shelf C: Trending Blockbusters -->
     <section id="trending">
       <div class="flex items-center justify-between mb-4">
@@ -825,6 +849,43 @@
         lucide.createIcons();
       } catch (err) {
         console.error("Error fetching recs:", err);
+      }
+
+      // Fetch Market Basket Association Rules Recommendations
+      try {
+        const targetCid = (catalog.length > 0 && catalog[0].content_id) ? catalog[0].content_id : 'cnt_mov_0001';
+        const mbRes = await fetch(`${API_BASE}/api/v1/recommendations/co-watch/${targetCid}?limit=6`);
+        const mbData = await mbRes.json();
+        const mbItems = mbData.recommendations || [];
+        const mbContainer = document.getElementById('marketBasketGrid');
+        if (mbItems.length > 0) {
+          mbContainer.innerHTML = mbItems.map(item => {
+            const badge = `${item.lift.toFixed(1)}x Lift`;
+            const explain = `Market Basket Association: Frequently watched together with confidence ${(item.confidence * 100).toFixed(1)}% and Lift ${item.lift.toFixed(2)}x.`;
+            return createPosterHTML(item, badge, null, explain);
+          }).join('');
+        }
+        lucide.createIcons();
+      } catch (mbErr) {
+        console.error("Error fetching market basket recs:", mbErr);
+      }
+
+      // Fetch SVD Collaborative Filtering Recommendations
+      try {
+        const cfRes = await fetch(`${API_BASE}/api/v1/recommendations/collaborative/${currentUser.user_id}?limit=6`);
+        const cfData = await cfRes.json();
+        const cfItems = cfData.recommendations || [];
+        const cfContainer = document.getElementById('collaborativeGrid');
+        if (cfItems.length > 0) {
+          cfContainer.innerHTML = cfItems.map(item => {
+            const badge = `CF Rank #${item.rank}`;
+            const explain = `Collaborative SVD Factorization: Latent preference score ${item.cf_score ? item.cf_score.toFixed(2) : '1.0'} inferred from playback completion and dwell time patterns across similar viewer cohorts.`;
+            return createPosterHTML(item, badge, null, explain);
+          }).join('');
+        }
+        lucide.createIcons();
+      } catch (cfErr) {
+        console.error("Error fetching collaborative recs:", cfErr);
       }
     }
 

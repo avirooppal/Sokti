@@ -71,3 +71,35 @@ def test_users_endpoint_pii_masked():
     # Verify email has masking (contains ***)
     assert "***" in users[0]["email"]
 
+
+def test_cowatch_market_basket_recommendations():
+    res = core_client.get("/api/v1/recommendations/co-watch/cnt_mov_0001?limit=3")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["algorithm"] == "Market Basket Association Rule Mining"
+    assert "recommendations" in data
+    assert len(data["recommendations"]) > 0
+    assert "lift" in data["recommendations"][0]
+
+
+def test_collaborative_svd_recommendations():
+    # Use synthetic user ID
+    res = core_client.get("/api/v1/recommendations/collaborative/60587b6a-de1a-5fcf-8069-f1aab9b0db73?limit=3")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["algorithm"] == "TruncatedSVD Latent Factorization"
+    assert "recommendations" in data
+    assert len(data["recommendations"]) > 0
+    assert "cf_score" in data["recommendations"][0]
+
+
+def test_hybrid_recommendation_shelves():
+    res = core_client.get("/api/v1/recommendations/hybrid/60587b6a-de1a-5fcf-8069-f1aab9b0db73?limit=3")
+    assert res.status_code == 200
+    data = res.json()
+    assert "shelves" in data
+    assert "because_you_watched" in data["shelves"]
+    assert "collaborative_picks" in data["shelves"]
+    assert "hybrid_discoveries" in data["shelves"]
+
+
